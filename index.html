@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="theme-color" content="#05060f" />
+<title>ILLUSION COMPLEX — To The Moon</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2305060f'/%3E%3Ccircle cx='32' cy='30' r='17' fill='%23f4f1de'/%3E%3Ccircle cx='39' cy='24' r='15' fill='%2305060f'/%3E%3Cpath d='M8 56 L56 8' stroke='%236df7ff' stroke-width='2'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div id="app">
+  <canvas id="game" aria-label="Illusion Complex game canvas"></canvas>
+  <div id="grain" aria-hidden="true"></div>
+  <div id="vignette" aria-hidden="true"></div>
+
+  <div id="ui">
+    <!-- ================= HUD ================= -->
+    <div id="hud" class="hidden" aria-live="polite">
+      <div class="hud-left">
+        <div class="hud-kicker" id="hud-district">PARALLAX</div>
+        <div class="hud-title"><span id="hud-levelnum">01</span> <span id="hud-levelname">FIRST REFLECTION</span></div>
+        <div class="hud-phase">
+          <button class="chip" id="btn-phase-hud" data-act="phase" aria-label="Shift phase">
+            <span class="dot" id="phase-dot"></span><span id="phase-label">PHASE A</span>
+          </button>
+          <span class="hud-hint" id="hud-hint"></span>
+        </div>
+      </div>
+      <div class="hud-right">
+        <div class="hud-clock" id="hud-time">00:00.00</div>
+        <div class="hud-deaths"><span id="hud-deaths">0</span> DEATHS</div>
+      </div>
+      <div class="hud-ticker" id="hud-ticker"></div>
+      <div id="hud-flash"></div>
+    </div>
+
+    <div id="death-prompt" class="hidden">
+      <div class="death-inner">
+        <div class="death-title">VOIDED</div>
+        <div class="death-actions">
+          <button class="btn ghost small" data-act="watch-ad" id="btn-sponsored">SPONSORED CONTINUE</button>
+        </div>
+        <div class="death-sub" id="death-sub">respawn</div>
+      </div>
+    </div>
+
+    <!-- ================= TITLE ================= -->
+    <section id="screen-title" class="screen show">
+      <div class="title-wrap">
+        <div class="eyebrow"><span class="live-dot"></span> EXTREME DIFFICULTY · 35 LEVELS · ONE MOON</div>
+        <h1 class="logo">
+          <span class="logo-top">ILLUSION</span>
+          <span class="logo-bottom">COMPLEX</span>
+        </h1>
+        <div class="title-rule"><span></span><b>TO THE MOON</b><span></span></div>
+        <p class="title-blurb">The geometry is lying to you. Phase through it. Flip gravity. Click the ads.</p>
+        <nav class="menu">
+          <button class="btn primary" data-act="play">PLAY <kbd>ENTER</kbd></button>
+          <button class="btn" data-act="levels">LEVEL SELECT</button>
+          <button class="btn" data-act="adspace">ADSPACE <span class="tag">LIVE</span></button>
+          <button class="btn" data-act="howto">HOW TO PLAY</button>
+        </nav>
+        <div class="title-foot">
+          <span id="title-progress">0 / 35 CLEARED</span>
+          <span id="title-credits">₡ 250</span>
+          <span id="title-diamonds">◆ 0</span>
+          <button class="icon-btn" data-act="mute" id="mute-btn" title="Toggle sound">SOUND ON</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= LEVEL SELECT ================= -->
+    <section id="screen-levels" class="screen">
+      <header class="screen-head">
+        <div>
+          <div class="kicker">CAMPAIGN MAP</div>
+          <h2>35 FRAMES OF REFERENCE</h2>
+        </div>
+        <div class="head-right">
+          <div class="wallet">₡ <span data-credits>250</span> <span class="diamonds">◆ <span data-diamonds>0</span></span></div>
+          <button class="icon-btn" data-act="back">BACK</button>
+        </div>
+      </header>
+      <div class="district-list" id="district-list"></div>
+      <footer class="screen-foot">
+        <span>TIME PAR: <b>GOLD</b> <b class="silver">SILVER</b> · DEATHS DON'T COUNT AGAINST YOU, THEY COUNT FOR THE ADS</span>
+        <button class="btn small" data-act="adspace">ADSPACE</button>
+      </footer>
+    </section>
+
+    <!-- ================= ADSPACE ================= -->
+    <section id="screen-adspace" class="screen">
+      <header class="screen-head">
+        <div>
+          <div class="kicker">ADSPACE // CAMPAIGN CONTROL</div>
+          <h2>MONETIZE THE IMPOSSIBLE</h2>
+        </div>
+        <div class="head-right">
+          <div class="wallet">₡ <span data-credits>250</span> <span class="diamonds">◆ <span data-diamonds>0</span></span></div>
+          <button class="icon-btn" data-act="back">BACK</button>
+        </div>
+      </header>
+      <div class="adspace-grid">
+        <div class="panel">
+          <div class="panel-head"><h3>ACTIVE CAMPAIGN</h3><span class="status" id="campaign-status">LIVE</span></div>
+          <div id="campaign-creative" class="creative-preview"></div>
+          <div class="metric-grid">
+            <div><b id="stat-impressions">0</b><span>IMPRESSIONS</span></div>
+            <div><b id="stat-clicks">0</b><span>CLICKS</span></div>
+            <div><b id="stat-ctr">0.0%</b><span>CTR</span></div>
+            <div><b id="stat-revenue">₡0</b><span>REVENUE</span></div>
+          </div>
+          <div class="budget-row">
+            <div class="budget-label"><span>MEDIA BUDGET</span><b id="budget-text">₡400 / ₡400</b></div>
+            <div class="bar"><i id="budget-bar" style="width:100%"></i></div>
+            <div class="budget-actions">
+              <button class="btn small" data-act="refuel" id="btn-refuel">REFUEL ₡60 → ₡150</button>
+              <button class="btn small" data-act="toggle-campaign" id="btn-campaign">PAUSE CAMPAIGN</button>
+            </div>
+          </div>
+          <p class="fineprint">Impressions are free. Clicks pay. That's the whole industry.</p>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>CREATIVE ROTATION</h3><span class="status muted">4 SLOTS</span></div>
+          <div id="creative-list" class="creative-list"></div>
+          <p class="fineprint">Your selected creative runs on every billboard in every frame. Tap a billboard in-game to generate a click. Trust the process.</p>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>CAMPAIGN OBJECTIVES</h3><span class="status muted">AUTO-CLAIM</span></div>
+          <div id="objective-list" class="objective-list"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>BODY UPGRADES</h3><span class="status muted">PERMANENT</span></div>
+          <div id="upgrade-list" class="upgrade-list"></div>
+          <p class="fineprint">Funded by ad revenue and the exploitation of impossible geometry.</p>
+        </div>
+
+        <div class="panel" id="vault-panel">
+          <div class="panel-head"><h3>DIAMOND VAULT</h3><span class="status muted">◆ COSMETIC</span></div>
+          <div id="vault-list" class="upgrade-list"></div>
+          <p class="fineprint">Diamonds are cut from geometry that never existed. Spend them on how you look while falling.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= HOW TO ================= -->
+    <section id="screen-howto" class="screen">
+      <header class="screen-head">
+        <div>
+          <div class="kicker">BRIEFING</div>
+          <h2>READ THE ROOM. IT IS WRONG.</h2>
+        </div>
+        <button class="icon-btn" data-act="back">BACK</button>
+      </header>
+      <div class="howto-grid">
+        <div class="panel">
+          <h3>CONTROLS</h3>
+          <dl class="keys">
+            <dt><kbd>A</kbd><kbd>D</kbd> / <kbd>←</kbd><kbd>→</kbd></dt><dd>Move</dd>
+            <dt><kbd>SPACE</kbd> / <kbd>W</kbd> / <kbd>↑</kbd></dt><dd>Jump — hold for height, tap for precision</dd>
+            <dt><kbd>F</kbd> / <kbd>SHIFT</kbd></dt><dd>Shift phase: swap solid geometry</dd>
+            <dt><kbd>V</kbd> / <kbd>R</kbd></dt><dd>Invert gravity (where the floor remembers you)</dd>
+            <dt><kbd>C</kbd></dt><dd>Chrono focus (upgrade) — slow time while held</dd>
+            <dt><kbd>ESC</kbd> / <kbd>P</kbd></dt><dd>Pause</dd>
+            <dt><kbd>M</kbd></dt><dd>Mute</dd>
+          </dl>
+        </div>
+        <div class="panel">
+          <h3>THE RULES</h3>
+          <ul class="rules">
+            <li><b>Phase A</b> geometry is amber. <b>Phase B</b> geometry is cyan. You can only stand on one truth at a time.</li>
+            <li>You can't phase into a solid. The game will refuse, loudly.</li>
+            <li>Spikes, saws, and lasers delete you instantly. Respawn is immediate. Death is content.</li>
+            <li>Billboards are optional. Headbutt them for ad clicks, credits, and the warm feeling of being marketed to.</li>
+            <li>Gold and silver times are for people who do not have jobs. Bronze is for the rest of us.</li>
+            <li>There are 35 levels and a moon. The moon is real. The stairs are not.</li>
+          </ul>
+        </div>
+        <div class="panel mobile-note">
+          <h3>TOUCH</h3>
+          <p>On phones and tablets, use the on-screen pads. Buttons stay inside the safe area. Landscape is strongly recommended — the geometry is wider than your thumb.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PAUSE ================= -->
+    <section id="screen-pause" class="screen modal">
+      <div class="modal-card">
+        <div class="kicker">INTERMISSION</div>
+        <h2>PAUSED</h2>
+        <div class="pause-stats">
+          <div><b id="pause-time">00:00</b><span>RUN TIME</span></div>
+          <div><b id="pause-deaths">0</b><span>DEATHS</span></div>
+          <div><b id="pause-best">—</b><span>BEST</span></div>
+        </div>
+        <div class="menu column">
+          <button class="btn primary" data-act="resume">RESUME</button>
+          <button class="btn" data-act="restart">RESTART FRAME</button>
+          <button class="btn" data-act="levels">LEVEL SELECT</button>
+          <button class="btn" data-act="adspace">ADSPACE</button>
+          <button class="btn ghost" data-act="assist-toggle" id="assist-btn">ASSIST: OFF</button>
+        </div>
+        <p class="fineprint">Assist slows hazards and grants one extra checkpoint. It does not count toward gold times.</p>
+      </div>
+    </section>
+
+    <!-- ================= COMPLETE ================= -->
+    <section id="screen-complete" class="screen modal">
+      <div class="modal-card wide">
+        <div class="kicker" id="complete-kicker">FRAME CLEARED</div>
+        <h2 id="complete-title">FIRST REFLECTION</h2>
+        <div class="complete-body">
+          <div class="medal" id="complete-medal">GOLD</div>
+          <div class="stats">
+            <div><span>TIME</span><b id="complete-time">00:00.00</b></div>
+            <div><span>BEST</span><b id="complete-best">00:00.00</b></div>
+            <div><span>DEATHS</span><b id="complete-deaths">0</b></div>
+            <div><span>REWARD</span><b id="complete-reward">₡0</b></div>
+            <div><span>DIAMONDS</span><b id="complete-gems">◆ 0</b></div>
+            <div><span>GEMS FOUND</span><b id="complete-gemcount">0 / 3</b></div>
+          </div>
+          <div class="ad-recap">
+            <div class="kicker">CAMPAIGN RECAP</div>
+            <div class="recap-grid">
+              <div><b id="recap-brand">VOID COLA</b><span>CREATIVE</span></div>
+              <div><b id="recap-impr">0</b><span>IMPRESSIONS</span></div>
+              <div><b id="recap-clicks">0</b><span>CLICKS</span></div>
+              <div><b id="recap-rev">₡0</b><span>AD REVENUE</span></div>
+            </div>
+            <p class="fineprint" id="recap-quip">Nobody clicked. Beautiful numbers, no money.</p>
+          </div>
+        </div>
+        <div class="menu row wrap">
+          <button class="btn primary" data-act="next" id="btn-next">NEXT FRAME <kbd>ENTER</kbd></button>
+          <button class="btn" data-act="restart">RETRY</button>
+          <button class="btn" data-act="levels">LEVEL SELECT</button>
+          <button class="btn ghost" data-act="adspace">ADSPACE</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= ENDING ================= -->
+    <section id="screen-ending" class="screen">
+      <div class="ending-wrap">
+        <div class="kicker">FRAME 35 / 35</div>
+        <h1 class="ending-title">YOU ARE<br><span>ON THE MOON.</span></h1>
+        <p class="ending-copy">
+          The stairs went nowhere. The floors were a rumor. The ads were the only honest thing in the building.
+          You climbed an illusion 35 storeys high and it brought you here: a rock, a flag, and one last impression.
+        </p>
+        <div class="ending-stats" id="ending-stats"></div>
+        <div class="menu row wrap">
+          <button class="btn primary" data-act="levels">FREE PLAY</button>
+          <button class="btn" data-act="adspace">COUNT THE MONEY</button>
+          <button class="btn ghost" data-act="title">TITLE</button>
+        </div>
+        <p class="fineprint">Thank you for playing. Please rate the ads five stars.</p>
+      </div>
+    </section>
+
+    <!-- ================= SPONSORED AD OVERLAY ================= -->
+    <div id="sponsor-ad" class="hidden" role="dialog" aria-modal="true" aria-label="Sponsored message">
+      <div class="ad-bezel">
+        <div class="ad-top"><span>SPONSORED CONTINUE</span><span id="ad-countdown">4</span></div>
+        <div id="sponsor-creative" class="sponsor-creative"></div>
+        <div class="ad-bottom">
+          <div class="ad-progress"><i id="ad-progress-bar"></i></div>
+          <button class="icon-btn" id="ad-skip" data-act="ad-skip" disabled>SKIP IN 3</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast-wrap"></div>
+  </div>
+
+  <div id="touch-controls" class="hidden" aria-hidden="true">
+    <div class="touch-left">
+      <button class="tbtn" data-hold="left" aria-label="Move left">◀</button>
+      <button class="tbtn" data-hold="right" aria-label="Move right">▶</button>
+    </div>
+    <div class="touch-right">
+      <button class="tbtn alt" data-hold="phase" aria-label="Shift phase">PHASE</button>
+      <button class="tbtn alt" data-hold="flip" aria-label="Invert gravity">FLIP</button>
+      <button class="tbtn jump" data-hold="jump" aria-label="Jump">JUMP</button>
+    </div>
+    <button class="tbtn small pause" data-act="pause" aria-label="Pause">II</button>
+  </div>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
